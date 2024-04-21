@@ -1,40 +1,54 @@
 import React from "react";
 import SearchBar from "./components/SearchBar";
-import 'semantic-ui-css/semantic.min.css'
+import "semantic-ui-css/semantic.min.css";
 import youtube from "./apis/youtube";
 import VideoList from "./components/VideoList";
+import VideoDetail from "./components/VideoDetail";
 
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { videos: [], selectedVideo: null };
+  }
 
+  componentDidMount(){
+    this.onSearchSubmit('react course');
+  }
 
-class App extends React.Component{
- constructor(props){
-  super(props)
-  this.state = {videos: []}
- }
+  onSearchSubmit = async (term) => {
+    const response = await youtube.get("/search", {
+      params: {
+        q: term,
+      },
+    });
+    this.setState({ videos: response.data.items,
+    selectedVideo: response.data.items[0] });
+  };
 
- onSearchSubmit = async (term) => {
- const response = await youtube.get('/search', {
-    params: {
-      q: term,
-      part: "snippet",
-      maxResults: 5,
-      type: 'video',
-      key: 'AIzaSyCyzjatpKmQMcC9Pxgh8X1LkhBmgzsTMyo'
-    }
-  })
+  onVideoSelect = (video) => {
+    this.setState({ selectedVideo: video });
+  };
 
-  this.setState({videos: response.data.items});
- }
-
-  render(){
-    return(
+  render() {
+    return (
       <div className="ui container">
-        <SearchBar onSubmit={this.onSearchSubmit}/>
-        <VideoList videos={this.state.videos} />
+        <SearchBar onSubmit={this.onSearchSubmit} />
+        <div className="ui grid">
+          <div className="ui row">
+            <div className="ten wide column">
+              <VideoDetail video={this.state.selectedVideo} />
+            </div>
+            <div className="six wide column">
+              <VideoList
+                onVideoSelect={this.onVideoSelect}
+                videos={this.state.videos}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    )
+    );
   }
 }
-
 
 export default App;
